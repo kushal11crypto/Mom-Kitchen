@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('phone_number')->nullable();
             $table->string('address')->nullable();
+            $table->string('role')->default('customer');
             $table->timestamps();
         });
     }

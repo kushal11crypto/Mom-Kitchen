@@ -1,50 +1,20 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ItemController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\PaymentController;
 
-
-// Default welcome page
 Route::get('/', function () {
     return view('welcome');
 });
 
-// ==================== Web Pages for Customers ====================
-// Example: List customers page
-Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-// Example: Add customer page
-Route::get('/customers/create', function() {
-    return view('customers.create');
-})->name('customers.create');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-// ==================== Web Pages for Items ====================
-// Example: List items page
-Route::get('/items', [ItemController::class, 'index'])->name('items.index');
-
-// Example: Add item page
-Route::get('/items/create', function() {
-    return view('items.create');
-})->name('items.create');
-
-// ==================== Web Pages for Categories ====================
-Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-Route::get('/categories/create', function() {
-    return view('categories.create');
-})->name('categories.create');
-
-// ==================== Web Pages for Orders ====================
-Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-Route::get('/orders/create', function() {
-    return view('orders.create');
-})->name('orders.create');
-
-// ==================== Web Pages for Payments ====================
-Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
-Route::get('/payments/create', function() {
-    return view('payments.create');
-})->name('payments.create');
+require __DIR__.'/auth.php';

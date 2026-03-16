@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('itemName');
             $table->decimal('price', 10, 2);
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $$table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
 
 
             $table->timestamps();
