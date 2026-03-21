@@ -21,7 +21,11 @@
                     @endphp
                     <div
                         class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6 hover:shadow-md transition-shadow">
-                        <img src="{{ $item['image'] }}" class="w-24 h-24 rounded-xl object-cover border border-gray-50">
+                    
+                        <img src="{{ asset('storage/uploads/' . basename($item['image'])) }}" 
+     class="w-24 h-24 rounded-xl object-cover border border-gray-50">
+
+
 
                         <div class="flex-1">
                             <h3 class="font-bold text-lg text-gray-900 leading-tight">{{ $item['name'] }}</h3>

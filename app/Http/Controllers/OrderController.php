@@ -26,7 +26,7 @@ class OrderController extends Controller
 
         // Create Order
         $order = Order::create([
-            'customer_id' => auth()->id(),
+            'user_id' => auth()->id(),
             'order_date' => now(),
             'total_amount' => $total,
             'order_status' => 'pending'
@@ -43,7 +43,7 @@ class OrderController extends Controller
 
         // Khalti Payment Initiation (Sandbox)
         $response = Http::withHeaders([
-            'Authorization' => 'Key test_secret_key_xxxxx', // 🔴 Replace with your Khalti test key
+            'Authorization' => 'Key b3ac16418d784996bfdcafa351144175', // 🔴 Replace with your Khalti test key
         ])->post('https://a.khalti.com/api/v2/epayment/initiate/', [
             "return_url" => route('payment.verify'),
             "website_url" => url('/'),
@@ -63,7 +63,7 @@ class OrderController extends Controller
         $pidx = $request->pidx;
 
         $response = Http::withHeaders([
-            'Authorization' => 'Key test_secret_key_xxxxx',
+            'Authorization' => 'Key tb3ac16418d784996bfdcafa351144175',
         ])->post('https://a.khalti.com/api/v2/epayment/lookup/', [
             "pidx" => $pidx
         ]);

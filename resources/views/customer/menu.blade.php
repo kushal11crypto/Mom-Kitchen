@@ -3,9 +3,9 @@
 
     @php
     $products = [
-        ['id' => 1, 'name' => 'Chicken Burger', 'price' => 350, 'image' => 'https://via.placeholder.com/200'],
-        ['id' => 2, 'name' => 'Pizza', 'price' => 800, 'image' => 'https://via.placeholder.com/200'],
-        ['id' => 3, 'name' => 'Momo', 'price' => 180, 'image' => 'https://via.placeholder.com/200']
+        ['id' => 1, 'name' => 'Chicken Burger', 'price' => 350, 'image' => 'chicken-burger.webp'],
+        ['id' => 2, 'name' => 'Pizza', 'price' => 800, 'image' => 'pizza.jpg'],
+        ['id' => 3, 'name' => 'Momo', 'price' => 180, 'image' => 'momo.jpg']
     ];
     @endphp
 
@@ -32,10 +32,10 @@
                 @foreach($products as $product)
                 <div class="group bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col">
                     
-                    <!-- Image Container -->
                     <div class="relative overflow-hidden p-4">
-                        <img src="{{ $product['image'] }}" 
-                             class="rounded-[2rem] w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-500">
+            <img src="{{ asset('storage/uploads/' . $product['image']) }}" 
+                 class="rounded-[2rem] w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-500">
+        
                         <div class="absolute top-8 left-8 bg-white/90 backdrop-blur px-4 py-1 rounded-full shadow-sm">
                             <span class="text-orange-600 font-bold text-sm">🔥 Popular</span>
                         </div>
@@ -82,40 +82,54 @@
 
     <script>
     document.querySelectorAll('.add-to-cart-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-            let id = this.getAttribute('data-id');
-            let formData = new FormData(this);
-            let btn = this.querySelector('button');
+        let id = this.getAttribute('data-id');
+        let formData = new FormData(this);
+        let btn = this.querySelector('button');
+        let originalIcon = btn.innerHTML;
 
-            // Feedback: Change icon temporarily
-            btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+        // Visual feedback: Spinner
+        btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
 
-            fetch(`/add-to-cart/${id}`, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Reset button icon
-                btn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>`;
-                
-                if (data.success) {
-                    const toast = document.getElementById('success-message');
-                    document.getElementById('toast-text').innerText = data.message;
-                    
+        fetch(`/add-to-cart/${id}`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.innerHTML = originalIcon; // Reset button
+            
+            if (data.success) {
+                // 🟢 Update the unique item count in the Navbar
+                const badge = document.getElementById('cart-count-badge');
+                if (badge) {
+                    badge.innerText = data.cart_count;
+                    badge.classList.remove('hidden');
+                }
+
+                // 🟠 Show Toast Message
+                const toast = document.getElementById('success-message');
+                const toastText = document.getElementById('toast-text');
+                if (toast && toastText) {
+                    toastText.innerText = data.message;
                     toast.classList.remove('hidden', 'translate-x-full');
-                    
                     setTimeout(() => {
                         toast.classList.add('translate-x-full');
                         setTimeout(() => toast.classList.add('hidden'), 300);
                     }, 3000);
                 }
-            })
-            .catch(error => console.error(error));
+            }
+        })
+        .catch(error => {
+            btn.innerHTML = originalIcon;
+            console.error('Error:', error);
         });
     });
+});
+
+
     </script>
 </x-app-layout>

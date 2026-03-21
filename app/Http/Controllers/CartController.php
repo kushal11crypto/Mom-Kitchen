@@ -12,7 +12,7 @@ class CartController extends Controller
         return view('cart', compact('cart'));
     }
 
-    public function addToCart(Request $request, $id)
+   public function addToCart(Request $request, $id)
     {
         $cart = session()->get('cart', []);
 
@@ -29,11 +29,16 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
+        // ✅ Use count() to get the number of unique items (keys)
+        $uniqueItemCount = count($cart);
+
         return response()->json([
             'success' => true,
-            'message' => 'Item added to cart!'
+            'message' => 'Item added to cart!',
+            'cart_count' => $uniqueItemCount 
         ]);
     }
+
 
    
     
