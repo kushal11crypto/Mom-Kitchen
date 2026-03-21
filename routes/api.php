@@ -7,6 +7,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\CartController;
+
 
 
 // ==================== Item Routes ====================
@@ -29,3 +31,14 @@ Route::post('/customers', [CustomerController::class, 'store']);     // Create c
 Route::get('/customers/{id}', [CustomerController::class, 'show']);  // Get single customer
 Route::put('/customers/{id}', [CustomerController::class, 'update']); // Update customer
 Route::delete('/customers/{id}', [CustomerController::class, 'destroy']); // Delete cus
+
+
+
+
+Route::get('/cart', [CartController::class, 'index'])->name('cart');
+
+Route::post('/add-to-cart/{id}', [CartController::class, 'addToCart'])->name('add.to.cart');
+
+Route::delete('/remove-from-cart/{id}', [CartController::class, 'remove'])->name('remove.from.cart');
+
+Route::get('/clear-cart', [CartController::class, 'clear'])->name('clear.cart');

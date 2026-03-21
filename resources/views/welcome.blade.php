@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mom's Kitchen | Dashboard</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite('resources/css/app.css')
 </head>
 <body class="bg-orange-50 font-sans antialiased">
 
@@ -16,7 +16,7 @@
             <a href="#how-it-works" class="hidden md:block text-gray-600 hover:text-orange-600 font-medium">How it Works</a>
             @if (Route::has('login'))
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="text-gray-700 hover:text-orange-600 font-semibold">Dashboard</a>
+                    <a href="{{ url('/customer/menu') }}" class="text-gray-700 hover:text-orange-600 font-semibold">Dashboard</a>
                 @else
                     <a href="{{ route('login') }}" class="text-gray-700 hover:text-orange-600 font-semibold">Log in</a>
                     @if (Route::has('register'))
