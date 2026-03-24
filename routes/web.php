@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
-
+use App\Http\Controllers\ItemController;
 
 require __DIR__.'/auth.php';
 
@@ -105,3 +105,17 @@ Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
 Route::post('/place-order', [OrderController::class, 'placeOrder'])->name('place.order');
 Route::get('/payment/verify', [OrderController::class, 'verifyPayment'])->name('payment.verify');
+
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/vendor/dashboard', [ItemController::class, 'dashboard'])->name('vendor.dashboard');
+
+    Route::get('/vendor/create-item', [ItemController::class, 'create'])->name('items.create');
+    Route::post('/items/store', [ItemController::class, 'store'])->name('items.store');
+
+    Route::get('/items/edit/{id}', [ItemController::class, 'edit'])->name('items.edit');
+    Route::put('/items/update/{id}', [ItemController::class, 'update'])->name('items.update');
+
+    Route::delete('/items/delete/{id}', [ItemController::class, 'destroy'])->name('items.destroy');
+});

@@ -29,7 +29,6 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        // ✅ Use count() to get the number of unique items (keys)
         $uniqueItemCount = count($cart);
 
         return response()->json([

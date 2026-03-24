@@ -5,7 +5,8 @@
     $products = [
         ['id' => 1, 'name' => 'Chicken Burger', 'price' => 350, 'image' => 'chicken-burger.webp'],
         ['id' => 2, 'name' => 'Pizza', 'price' => 800, 'image' => 'pizza.jpg'],
-        ['id' => 3, 'name' => 'Momo', 'price' => 180, 'image' => 'momo.jpg']
+        ['id' => 3, 'name' => 'Momo', 'price' => 180, 'image' => 'momo.jpg'],
+        ['id' => 4, 'name' => 'Chowmein', 'price' => 180, 'image' => 'momo.jpg']
     ];
     @endphp
 
