@@ -10,7 +10,7 @@ class Category extends Model
     use HasFactory;
 
     // If your primary key is not 'id'
-    protected $primaryKey = 'categoryId';
+    protected $primaryKey = 'id';
 
     // If your primary key is not auto-incrementing
     public $incrementing = true; // set false if not auto-incrementing
@@ -31,6 +31,6 @@ class Category extends Model
     // A category can have many items
     public function items()
     {
-        return $this->hasMany(Item::class, 'category_id', 'categoryId');
+        return $this->hasMany(Item::class, 'category_id', 'id');
     }
 }
