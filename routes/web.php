@@ -1,126 +1,98 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+
+// Root Controllers
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\PaymentController;
+
+// Admin Controllers (Inside Admin Folder)
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 
 require __DIR__.'/auth.php';
 
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     return view('welcome');
 });
 
-
-
+/*
+|--------------------------------------------------------------------------
+| Role-Based Redirect Dashboard
+|--------------------------------------------------------------------------
+*/
 Route::get('/dashboard', function () {
+    $role = auth()->user()->role;
 
-    if(auth()->user()->role == 'vendor'){
+    if ($role === 'admin') {
+        return redirect()->route('admin.dashboard');
+    }
+    if ($role === 'vendor') {
         return redirect()->route('vendor.dashboard');
     }
-
-    if(auth()->user()->role == 'customer'){
+    if ($role === 'customer') {
         return redirect()->route('customer.menu');
     }
 
     abort(403);
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-})->middleware(['auth','verified'])->name('dashboard');
-
-
-Route::middleware(['auth','role:vendor'])->group(function () {
-
-    Route::get('/vendor/dashboard', function () {
-        return view('vendor.dashboard');
-    })->name('vendor.dashboard');
-
+/*
+|--------------------------------------------------------------------------
+| Admin Routes (Prefix: admin. | URL: /admin/...)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::resource('users', AdminUserController::class);
+    Route::resource('categories', AdminCategoryController::class);
+    
+    // Payment Management
+    Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+    Route::patch('/payments/{payment}/status', [PaymentController::class, 'updateStatus'])->name('payments.updateStatus');
 });
 
-Route::middleware(['auth','role:customer'])->group(function () {
+Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
+    
+    Route::get('/dashboard', function () {
+        // Fetch items from the database
+        // Assuming your Item model has a 'user_id' to identify which vendor owns it
+        $items = \App\Models\Item::where('user_id', auth()->id())->get();
 
-    Route::get('/customer/menu', function () {
-        return view('customer.menu');
-    })->name('customer.menu');
+        // Pass the items to the view
+        return view('vendor.dashboard', compact('items'));
+    })->name('dashboard');
 
+    Route::resource('items', ItemController::class);
 });
 
-// Customer Profile Routes
 Route::middleware(['auth', 'role:customer'])->group(function () {
-    // Show profile page
+    // Menu & Profile
+    Route::get('/customer/menu', [ItemController::class, 'menu'])->name('customer.menu');
     Route::get('/customer/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-
-    // Update profile
     Route::patch('/customer/profile', [ProfileController::class, 'update'])->name('profile.update');
-
-    // Delete account
     Route::delete('/customer/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     Route::get('/customer/orders', [OrderController::class, 'myOrders'])->name('customer.orders');
-});
 
-Route::post('/add-to-cart', function (Request $request) {
-    $product = $request->validate([
-        'name' => 'required|string',
-        'price' => 'required|numeric',
-        'image' => 'required|string',
-    ]);
-
-    $cart = session()->get('cart', []);
-
-    // Generate a unique key for each item (or use product name)
-    $itemKey = $product['name'];
-
-    // If item exists, increase quantity
-    if(isset($cart[$itemKey])) {
-        $cart[$itemKey]['quantity'] += 1;
-    } else {
-        $cart[$itemKey] = [
-            'name' => $product['name'],
-            'price' => $product['price'],
-            'image' => $product['image'],
-            'quantity' => 1,
-        ];
-    }
-
-    session()->put('cart', $cart);
-
-    return redirect()->back()->with('success', 'Item added to cart!');
-});
-
-Route::get('/customer/menu', [ItemController::class, 'menu'])->name('customer.menu');
-
-Route::get('/cart', function () {
-    $cart = session('cart', []);
-    return view('cart', compact('cart'));
-});
-
-Route::post('/add-to-cart/{id}', [CartController::class, 'addToCart'])->name('add.to.cart');
-Route::post('/cart/increase/{id}', [CartController::class, 'increase'])->name('cart.increase');
-Route::post('/cart/decrease/{id}', [CartController::class, 'decrease'])->name('cart.decrease');
-Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
-
-Route::get('/checkout', function () {
-    return view('checkout');
-})->name('checkout');
-
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-
-Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
-Route::post('/place-order', [OrderController::class, 'placeOrder'])->name('place.order');
-Route::get('/payment/verify', [OrderController::class, 'verifyPayment'])->name('payment.verify');
-
-
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/vendor/dashboard', [ItemController::class, 'dashboard'])->name('vendor.dashboard');
-
-    Route::get('/vendor/create-item', [ItemController::class, 'create'])->name('items.create');
-    Route::post('/items/store', [ItemController::class, 'store'])->name('items.store');
-
-    Route::get('/items/edit/{id}', [ItemController::class, 'edit'])->name('items.edit');
-    Route::put('/items/update/{id}', [ItemController::class, 'update'])->name('items.update');
-
-    Route::delete('/items/delete/{id}', [ItemController::class, 'destroy'])->name('items.destroy');
+    // Cart & Checkout
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/add-to-cart/{id}', [CartController::class, 'addToCart'])->name('add.to.cart');
+    Route::post('/cart/increase/{id}', [CartController::class, 'increase'])->name('cart.increase');
+    Route::post('/cart/decrease/{id}', [CartController::class, 'decrease'])->name('cart.decrease');
+    Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+    
+    Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+    Route::post('/place-order', [OrderController::class, 'placeOrder'])->name('place.order');
+    Route::get('/payment/verify', [OrderController::class, 'verifyPayment'])->name('payment.verify');
 });

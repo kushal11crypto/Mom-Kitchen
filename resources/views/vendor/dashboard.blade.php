@@ -5,7 +5,7 @@
                 🍳 Mom's Kitchen <span class="text-slate-400 font-normal ml-2">Inventory Management</span>
             </h2>
 
-            <a href="{{ route('items.create') }}" 
+            <a href="{{ route('vendor.items.create') }}" 
                class="inline-flex items-center px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-md transition transform hover:-translate-y-0.5">
                 ➕ Add New Item
             </a>
@@ -88,12 +88,12 @@
                                     <td class="px-6 py-4">
                                         <div class="flex justify-end gap-3">
 
-                                            <a href="{{ route('items.edit', $item->id) }}"
+                                            <a href="{{ route('vendor.items.edit', $item->id) }}"
                                                class="text-amber-600 hover:text-amber-700 text-sm font-semibold">
                                                 Edit
                                             </a>
 
-                                            <form action="{{ route('items.destroy', $item->id) }}" method="POST"
+                                            <form action="{{ route('vendor.items.destroy', $item->id) }}" method="POST"
                                                   onsubmit="return confirm('Delete this item?')">
                                                 @csrf
                                                 @method('DELETE')

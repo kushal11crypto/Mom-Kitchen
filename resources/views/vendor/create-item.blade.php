@@ -27,7 +27,7 @@
 
             <div class="bg-white shadow-2xl rounded-3xl border border-slate-100 overflow-hidden">
                 <div class="p-8 sm:p-10">
-                   <form action="{{ route('items.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                   <form action="{{ route('vendor.items.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                         @csrf
 
                         <!-- Item Name -->
