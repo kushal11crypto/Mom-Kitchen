@@ -46,12 +46,15 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'item_name' => 'required|string|max:255',
-            'price' => 'required|numeric',
-            'category_id' => 'required|exists:categories,id',
-            'image' => 'nullable|image|max:5120',
-            'availability_status' => 'required|in:available,unavailable',
-        ]);
+    'item_name' => 'required|string|max:255',
+    'price' => 'required|numeric',
+    'category_id' => 'required|exists:categories,id',
+    'image' => 'nullable|image|max:5120',
+    'availability_status' => 'required|in:available,unavailable',
+], [
+    'image.max' => 'The image must not be larger than 5MB.',
+    'image.image' => 'The uploaded file must be an image (JPG, PNG).',
+]);
 
         $item = new Item();
         $item->item_name = $request->item_name;
@@ -61,7 +64,13 @@ class ItemController extends Controller
 
         $item->user_id = Auth::id(); 
         if ($request->hasFile('image')) {
-    $imagePath = $request->file('image')->store('items', 'public'); 
+    $file = $request->file('image');
+
+    if (!$file->isValid()) {
+        dd($file->getError(), $file->getErrorMessage());
+    }
+
+    $imagePath = $file->store('items', 'public');
     $item->image_url = $imagePath;
 }
 
@@ -70,6 +79,14 @@ class ItemController extends Controller
         return redirect()->route('vendor.dashboard')->with('success', 'Item created successfully!');
     }
 
+    public function menu()
+{
+    $items = Item::where('availability_status', 'available')
+        ->latest()
+        ->get();
+
+    return view('customer.menu', compact('items'));
+}
     /**
      * Show Edit Form
      */

@@ -22,8 +22,9 @@
                     <div
                         class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-6 hover:shadow-md transition-shadow">
                     
-                        <img src="{{ asset('storage/uploads/' . basename($item['image'])) }}" 
-     class="w-24 h-24 rounded-xl object-cover border border-gray-50">
+                        <img src="{{ asset('storage/' . $item['image']) }}" 
+     class="w-24 h-24 rounded-xl object-cover border border-gray-50"
+     alt="{{ $item['name'] }}">
 
 
 

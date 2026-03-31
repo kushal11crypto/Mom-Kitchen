@@ -35,7 +35,7 @@
                             <label class="block text-sm font-bold text-slate-700 mb-2">Item Name</label>
                             <input type="text" name="item_name" value="{{ old('item_name') }}"
                                    placeholder="e.g. Traditional Nepali Thali"
-                                   class="w-full border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-200"
+                                   class="w-full border border-gray-300 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-200"
                                    required>
                         </div>
 
@@ -48,7 +48,7 @@
                                         Rs.
                                     </div>
                                     <input type="number" step="0.01" name="price" value="{{ old('price') }}"
-                                           class="w-full pl-12 py-4 border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-200"
+                                           class="w-full border border-gray-300 pl-12 py-4 rounded-2xl focus:ring-4 focus:ring-indigo-200"
                                            placeholder="0.00" required>
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Category</label>
                                 <select name="category_id" required
-                                        class="w-full border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-200">
+                                        class="w-full border border-gray-300 border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-200">
                                     <option value="" disabled selected>Select a category</option>
                                     @foreach($categories as $category)
                                         <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>
@@ -86,7 +86,7 @@
                                     </div>
                                 </div>
                                 <input type="file" id="image-input" name="image" 
-                                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                                       class="absolute inset-0 w-full border border-gray-300  h-full opacity-0 cursor-pointer" 
                                        accept="image/*" onchange="previewFile()">
                             </div>
                         </div>
@@ -122,21 +122,30 @@
 
     <script>
         function previewFile() {
-            const input = document.getElementById('image-input');
+        const input = document.getElementById('image-input');
+        const file = input.files[0];
+
+        if (file) {
+            // ✅ Check file size (5MB = 5 * 1024 * 1024)
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Image must be less than 5MB!");
+                input.value = "";
+                return;
+            }
+
+            const reader = new FileReader();
             const preview = document.getElementById('image-preview');
             const container = document.getElementById('preview-container');
             const dropzone = document.getElementById('dropzone');
-            
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    preview.src = e.target.result;
-                    container.classList.remove('hidden');
-                    dropzone.classList.add('hidden');
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
+
+            reader.onload = e => {
+                preview.src = e.target.result;
+                container.classList.remove('hidden');
+                dropzone.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
         }
+    }
 
         function removeImage() {
             const input = document.getElementById('image-input');

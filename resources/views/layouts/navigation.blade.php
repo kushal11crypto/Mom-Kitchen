@@ -1,6 +1,5 @@
 <nav class="bg-white shadow-md">
-       @php
-        // ✅ Count unique items in session on page load
+    @php
         $cartCount = count(session('cart', []));
     @endphp
 
@@ -15,7 +14,7 @@
             </div>
 
             <!-- 🔷 Right Side -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-6">
 
                 <!-- ✅ Vendor Dashboard -->
                 @if(auth()->user()->role === 'vendor')
@@ -25,17 +24,41 @@
                     </a>
                 @endif
 
-
+                <!-- ✅ Customer Links -->
                 @if(auth()->user()->role === 'customer')
-                    <a href="{{ route('cart.index') }}" class="relative bg-orange-600 text-white px-4 py-2 rounded-lg">
-                        🛒 Cart
-                        <!-- ID used by JavaScript to update the count -->
-                        <span id="cart-count-badge" class="absolute -top-2 -right-2 bg-white text-orange-600 text-xs px-2 py-1 rounded-full {{ $cartCount > 0 ? '' : 'hidden' }}">
+
+                    <!-- Menu -->
+                    <a href="{{ route('customer.menu') }}"
+                       class="{{ request()->routeIs('customer.menu') ? 'text-orange-600 font-bold' : 'text-gray-700' }} hover:text-orange-600">
+                        Menu
+                    </a>
+
+                    <!-- Orders -->
+                    <a href="{{ route('customer.orders') }}"
+                       class="{{ request()->routeIs('customer.orders') ? 'text-orange-600 font-bold' : 'text-gray-700' }} hover:text-orange-600">
+                        Orders
+                    </a>
+
+                    <!-- Profile -->
+                    <a href="{{ route('profile.edit') }}"
+                       class="{{ request()->routeIs('profile.edit') ? 'text-orange-600 font-bold' : 'text-gray-700' }} hover:text-orange-600">
+                        Profile
+                    </a>
+
+                    <!-- Cart -->
+                    <a href="{{ route('cart.index') }}"
+                       class="relative bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition">
+                        🛒
+                        <span class="hidden sm:inline">Cart</span>
+
+                        <!-- Badge -->
+                        <span id="cart-count-badge"
+                              class="absolute -top-2 -right-2 bg-white text-orange-600 text-xs px-2 py-1 rounded-full {{ $cartCount > 0 ? '' : 'hidden' }}">
                             {{ $cartCount }}
                         </span>
                     </a>
-                @endif
 
+                @endif
 
                 <!-- 👤 User -->
                 <div class="text-gray-700 font-medium">

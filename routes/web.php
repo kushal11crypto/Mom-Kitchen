@@ -46,15 +46,19 @@ Route::middleware(['auth','role:customer'])->group(function () {
 
 });
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Customer Profile Routes
+Route::middleware(['auth', 'role:customer'])->group(function () {
+    // Show profile page
+    Route::get('/customer/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
-Route::get('/customer/menu', function () {
-    return view('customer.menu');
-})->name('customer.menu');
+    // Update profile
+    Route::patch('/customer/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Delete account
+    Route::delete('/customer/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/customer/orders', [OrderController::class, 'myOrders'])->name('customer.orders');
+});
 
 Route::post('/add-to-cart', function (Request $request) {
     $product = $request->validate([
@@ -85,6 +89,7 @@ Route::post('/add-to-cart', function (Request $request) {
     return redirect()->back()->with('success', 'Item added to cart!');
 });
 
+Route::get('/customer/menu', [ItemController::class, 'menu'])->name('customer.menu');
 
 Route::get('/cart', function () {
     $cart = session('cart', []);

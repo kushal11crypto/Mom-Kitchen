@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class OrderController extends Controller
 {
@@ -55,6 +57,18 @@ class OrderController extends Controller
         $data = $response->json();
 
         return redirect($data['payment_url']);
+    }
+
+    /**
+     * Customer Order History
+     */
+    public function myOrders()
+    {
+        $orders = Order::where('user_id', Auth::id())
+            ->latest()
+            ->get();
+
+        return view('customer.orders', compact('orders'));
     }
 
     public function verifyPayment(Request $request)
