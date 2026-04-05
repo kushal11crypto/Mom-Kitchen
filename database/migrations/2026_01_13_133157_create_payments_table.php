@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->decimal('payment_amount', 10, 2);
-            $table->date('payment_date');
+            $table->timestamp('payment_date')->useCurrent();
             $table->string('payment_status');
             $table->timestamps();
         });

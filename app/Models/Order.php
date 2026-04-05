@@ -12,6 +12,19 @@ class Order extends Model
         'user_id','order_date','order_status','total_amount'
     ];
 
+    public function updateStatus($newStatus)
+{
+    // Optional: Add validation for allowed statuses
+    $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+    if (!in_array($newStatus, $allowedStatuses)) {
+        throw new \InvalidArgumentException("Invalid status: $newStatus");
+    }
+
+    // Update and save
+    $this->order_status = $newStatus;
+    return $this->save();
+}
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);
@@ -22,7 +35,7 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
-    public function customer()
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }

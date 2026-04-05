@@ -14,7 +14,7 @@ class Category extends Model
 
     // If your primary key is not auto-incrementing
     public $incrementing = true; // set false if not auto-incrementing
-
+    
     // If your primary key is not an integer
     protected $keyType = 'int'; // change to 'string' if needed
 

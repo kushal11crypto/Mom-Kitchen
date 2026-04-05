@@ -6,16 +6,17 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
-     public function index()
+    public function index()
     {
         $cart = session('cart', []);
         return view('cart', compact('cart'));
     }
 
-   public function addToCart(Request $request, $id)
+    public function addToCart(Request $request, $id)
     {
         $cart = session()->get('cart', []);
 
+        // Check if item already exists in cart
         if (isset($cart[$id])) {
             $cart[$id]['quantity']++;
         } else {
@@ -23,7 +24,8 @@ class CartController extends Controller
                 "name" => $request->name,
                 "price" => $request->price,
                 "image" => $request->image,
-                "quantity" => 1
+                "seller_id" => $request->seller_id, // ensure seller_id is received
+                "quantity" => 1,
             ];
         }
 
@@ -38,9 +40,6 @@ class CartController extends Controller
         ]);
     }
 
-
-   
-    
     public function remove($id)
     {
         $cart = session()->get('cart', []);
@@ -60,30 +59,30 @@ class CartController extends Controller
     }
 
     public function increase($id)
-{
-    $cart = session()->get('cart', []);
+    {
+        $cart = session()->get('cart', []);
 
-    if (isset($cart[$id])) {
-        $cart[$id]['quantity']++;
-        session()->put('cart', $cart);
-    }
-
-    return redirect()->back();
-}
-
-public function decrease($id)
-{
-    $cart = session()->get('cart', []);
-
-    if (isset($cart[$id])) {
-        if ($cart[$id]['quantity'] > 1) {
-            $cart[$id]['quantity']--;
-        } else {
-            unset($cart[$id]);
+        if (isset($cart[$id])) {
+            $cart[$id]['quantity']++;
+            session()->put('cart', $cart);
         }
-        session()->put('cart', $cart);
+
+        return redirect()->back();
     }
 
-    return redirect()->back();
-}
+    public function decrease($id)
+    {
+        $cart = session()->get('cart', []);
+
+        if (isset($cart[$id])) {
+            if ($cart[$id]['quantity'] > 1) {
+                $cart[$id]['quantity']--;
+            } else {
+                unset($cart[$id]);
+            }
+            session()->put('cart', $cart);
+        }
+
+        return redirect()->back();
+    }
 }

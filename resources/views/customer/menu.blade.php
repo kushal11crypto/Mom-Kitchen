@@ -74,6 +74,7 @@
                                 <input type="hidden" name="name" value="{{ $item->item_name }}">
                                 <input type="hidden" name="price" value="{{ $item->price }}">
                                 <input type="hidden" name="image" value="{{ $item->image_url }}">
+                                <input type="hidden" name="seller_id" value="{{ $item->user_id }}">
 
                                 <button type="submit"
                                     class="bg-orange-600 text-white p-4 rounded-2xl hover:bg-black hover:scale-110 transition-all shadow-lg shadow-orange-200 hover:shadow-gray-300">
@@ -104,59 +105,62 @@
     <!-- JS -->
     <script>
     document.querySelectorAll('.add-to-cart-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
 
-            let id = this.getAttribute('data-id');
-            let formData = new FormData(this);
-            let btn = this.querySelector('button');
-            let originalIcon = btn.innerHTML;
+        let id = this.getAttribute('data-id');
+        let formData = new FormData(this);
+        let btn = this.querySelector('button');
+        let originalIcon = btn.innerHTML;
 
-            // Loading spinner
-            btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>`;
+        // Append seller_id explicitly
+        formData.append('seller_id', this.querySelector('input[name="seller_id"]').value);
 
-            fetch(`/add-to-cart/${id}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                btn.innerHTML = originalIcon;
+        // Loading spinner
+        btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>`;
 
-                if (data.success) {
-                    // Update cart badge
-                    const badge = document.getElementById('cart-count-badge');
-                    if (badge) {
-                        badge.innerText = data.cart_count;
-                        badge.classList.remove('hidden');
-                    }
+        fetch(`/add-to-cart/${id}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.innerHTML = originalIcon;
 
-                    // Show toast
-                    const toast = document.getElementById('success-message');
-                    const text = document.getElementById('toast-text');
-
-                    text.innerText = data.message;
-                    toast.classList.remove('hidden', 'translate-x-full');
-
-                    setTimeout(() => {
-                        toast.classList.add('translate-x-full');
-                        setTimeout(() => toast.classList.add('hidden'), 300);
-                    }, 3000);
+            if (data.success) {
+                // Update cart badge
+                const badge = document.getElementById('cart-count-badge');
+                if (badge) {
+                    badge.innerText = data.cart_count;
+                    badge.classList.remove('hidden');
                 }
-            })
-            .catch(error => {
-                btn.innerHTML = originalIcon;
-                console.error(error);
-            });
+
+                // Show toast
+                const toast = document.getElementById('success-message');
+                const text = document.getElementById('toast-text');
+
+                text.innerText = data.message;
+                toast.classList.remove('hidden', 'translate-x-full');
+
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    setTimeout(() => toast.classList.add('hidden'), 300);
+                }, 3000);
+            }
+        })
+        .catch(error => {
+            btn.innerHTML = originalIcon;
+            console.error(error);
         });
     });
+});
     </script>
 
 </x-app-layout>
