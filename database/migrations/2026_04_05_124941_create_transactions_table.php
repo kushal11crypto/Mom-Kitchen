@@ -12,7 +12,6 @@ class CreateTransactionsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('sender_id'); // Buyer
             $table->unsignedBigInteger('receiver_id'); // Seller
-            $table->decimal('amount', 10, 2);
             $table->string('status'); // pending, completed, failed
             $table->timestamp('transaction_date');
             $table->text('description')->nullable();

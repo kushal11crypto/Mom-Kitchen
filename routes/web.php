@@ -84,6 +84,9 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
     Route::patch('/customer/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/customer/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/customer/orders', [OrderController::class, 'myOrders'])->name('customer.orders');
+    Route::get('/customer/orders/{id}', [OrderController::class, 'showOrder'])
+         ->name('customer.orders.show');
+
 
     // Cart & Checkout
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

@@ -40,12 +40,12 @@ class OrderController extends Controller
             $total += $item['price'] * $item['quantity'];
         }
 
-        // Create Order with 'pending' status
+        // Create Order
         $order = Order::create([
             'user_id' => auth()->id(),
             'order_date' => now(),
             'total_amount' => $total,
-            'order_status' => 'pending',
+            'order_status' => Order::STATUS_PENDING,
         ]);
 
         // Save Order Items
@@ -55,34 +55,39 @@ class OrderController extends Controller
                 'item_id' => $id,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['price'],
-                'seller_id' => $item['seller_id'], // ensure this is set in cart
+                'seller_id' => $item['seller_id'],
             ]);
         }
 
-        // Initiate Khalti Payment
+        // Khalti Initiate
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'Key b3ac16418d784996bfdcafa351144175', // Replace with your Khalti test key
+                'Authorization' => 'Key b3ac16418d784996bfdcafa351144175',
             ])->post('https://a.khalti.com/api/v2/epayment/initiate/', [
                 "return_url" => route('payment.verify'),
                 "website_url" => url('/'),
-                "amount" => $total * 100, // convert to paisa
-                "purchase_order_id" => $order->id,
+                "amount" => $total * 100,
+                "purchase_order_id" => (string) $order->id,
                 "purchase_order_name" => "Order #" . $order->id,
             ]);
 
             $data = $response->json();
 
             if (isset($data['payment_url'])) {
+
+                // ✅ SAVE pidx
+                $order->update([
+                    'pidx' => $data['pidx']
+                ]);
+
                 return redirect($data['payment_url']);
             }
 
-            return back()->with('error', 'Khalti payment initiation failed.')
-                         ->with('debug', $data);
+            return back()->with('error', 'Khalti initiation failed')->with('debug', $data);
 
         } catch (\Exception $e) {
-            Log::error('Khalti initiation error: '.$e->getMessage());
-            return back()->with('error', 'Payment initiation failed, please try again.');
+            Log::error('Khalti initiation error: ' . $e->getMessage());
+            return back()->with('error', 'Payment initiation failed.');
         }
     }
 
@@ -90,20 +95,32 @@ class OrderController extends Controller
      * Customer Order History
      */
     public function myOrders()
-    {
-        $orders = Order::where('user_id', Auth::id())
-            ->latest()
-            ->get();
+{
+    $orders = Order::with('items.item') // eager load order items and their items
+        ->where('user_id', Auth::id())
+        ->latest()
+        ->get();
 
-        return view('customer.orders', compact('orders'));
-    }
+    return view('customer.orders', compact('orders'));
+}
+public function showOrder($id)
+{
+    $order = Order::with('items.item', 'items.seller', 'payment')
+                  ->where('user_id', auth()->id())
+                  ->findOrFail($id);
 
-     public function verifyPayment(Request $request)
+    return view('customer.order_details', compact('order'));
+}
+
+    /**
+     * Verify Khalti Payment
+     */
+    public function verifyPayment(Request $request)
     {
         $pidx = $request->pidx;
 
         if (!$pidx) {
-            return redirect('/cart')->with('error', 'Payment verification failed: missing pidx.');
+            return redirect('/cart')->with('error', 'Missing pidx.');
         }
 
         try {
@@ -117,92 +134,72 @@ class OrderController extends Controller
 
             Log::info('Khalti verify response', $data);
 
-            if (isset($data['status']) && $data['status'] == 'Completed') {
-                $orderId = $data['purchase_order_id'] ?? null;
-                $amount  = $data['amount'] ?? 0;
+            // ✅ Check success
+            if (($data['status'] ?? '') === 'Completed') {
 
-                $order = Order::find($orderId);
+                // ✅ FIND ORDER USING pidx
+                $order = Order::where('pidx', $pidx)->first();
 
-                if ($order && $order->order_status != Order::STATUS_PAID) {
-                    DB::beginTransaction();
-
-                    try {
-                        // Update order status using method
-                        $order->updateStatus(Order::STATUS_PAID);
-
-                        // Save payment record
-                        $order->payment()->create([
-                            'payment_amount' => $amount / 100,
-                            'payment_date' => now(),
-                            'payment_status' => 'paid',
-                        ]);
-
-                        // Process vendor payments and transactions
-                        $orderItems = $order->items; // ensure relation exists
-                        $vendorAmounts = [];
-
-                        foreach ($orderItems as $item) {
-                            $vendorId = $item->seller_id;
-                            $vendorAmounts[$vendorId] = ($vendorAmounts[$vendorId] ?? 0) + ($item->unit_price * $item->quantity);
-                        }
-
-                        $buyer = $order->user;
-
-                        if (!$buyer) {
-                            throw new \Exception('Buyer not found.');
-                        }
-
-                        // Check buyer balance
-                        $totalAmount = array_sum($vendorAmounts);
-                        if ($buyer->balance < $totalAmount) {
-                            throw new \Exception('Buyer has insufficient balance.');
-                        }
-
-                        // Deduct from buyer
-                        $buyer->update([
-                            'balance' => $buyer->balance - $totalAmount,
-                        ]);
-
-                        // Credit vendors and record transactions
-                        foreach ($vendorAmounts as $vendorId => $amountToPay) {
-                            $vendor = User::find($vendorId);
-                            if (!$vendor) {
-                                throw new \Exception('Vendor not found: ID ' . $vendorId);
-                            }
-
-                            $vendor->update([
-                                'balance' => $vendor->balance + $amountToPay,
-                            ]);
-
-                            Transaction::create([
-                                'sender_id' => $buyer->id,
-                                'receiver_id' => $vendor->id,
-                                'amount' => $amountToPay,
-                                'status' => 'completed',
-                                'transaction_date' => now(),
-                                'description' => 'Order payment for Order #' . $order->id,
-                            ]);
-                        }
-
-                        DB::commit();
-
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        return back()->with('error', 'Transaction failed: ' . $e->getMessage());
-                    }
+                if (!$order) {
+                    return redirect('/cart')->with('error', 'Order not found.');
                 }
 
-                // Clear cart session
-                session()->forget('cart');
+                DB::beginTransaction();
 
-                return redirect('/cart')->with('success', 'Payment successful!');
+                try {
+
+                    // Prevent duplicate processing
+                    if ($order->order_status === 'paid') {
+                        DB::commit();
+                        return redirect('/cart')->with('success', 'Already paid.');
+                    }
+
+                    // ✅ Update order
+                    $order->update([
+                        'order_status' => 'paid'
+                    ]);
+
+                    // Log after update
+                    Log::info('Order ID ' . $order->id . ' status after update: ' . $order->fresh()->order_status);
+
+                    // ✅ Save payment
+                    $order->payment()->create([
+                        'payment_amount' => ($data['total_amount'] ?? 0) / 100,
+                        'payment_date' => now(),
+                        'payment_status' => 'paid',
+                    ]);
+
+                    // ✅ Vendor Transactions
+                    foreach ($order->items as $item) {
+                        Transaction::create([
+                            'sender_id' => $order->user_id,
+                            'receiver_id' => $item->seller_id,
+                            'amount' => $item->unit_price * $item->quantity,
+                            'status' => 'completed',
+                            'transaction_date' => now(),
+                            'description' => 'Order #' . $order->id,
+                        ]);
+                    }
+
+                    DB::commit();
+
+                    // Clear cart
+                    session()->forget('cart');
+
+                    return redirect('/cart')->with('success', 'Payment successful!');
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::error('Transaction failed: ' . $e->getMessage());
+                    return back()->with('error', 'Transaction failed.');
+                }
             }
 
-            return redirect('/cart')->with('error', 'Payment failed.');
+            return redirect('/cart')->with('error', 'Payment not completed.');
 
         } catch (\Exception $e) {
             Log::error('Khalti verification error: ' . $e->getMessage());
-            return redirect('/cart')->with('error', 'Payment verification failed.');
+            return redirect('/cart')->with('error', 'Verification failed.');
         }
     }
 }
