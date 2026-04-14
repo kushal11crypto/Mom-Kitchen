@@ -26,6 +26,9 @@
                 <a href="{{ route('admin.payments.index') }}" class="flex items-center py-3 px-6 hover:bg-slate-800 {{ request()->routeIs('admin.payments.*') ? 'bg-slate-800 border-l-4 border-blue-500' : '' }}">
                     <i class="fas fa-credit-card mr-3"></i> Payments
                 </a>
+                <a href="{{ route('admin.orders.index') }}" class="flex items-center py-3 px-6 hover:bg-slate-800 {{ request()->routeIs('admin.orders.*') ? 'bg-slate-800 border-l-4 border-blue-500' : '' }}">
+        <i class="fas fa-shopping-basket mr-3"></i> Orders
+    </a>
             </nav>
         </div>
 

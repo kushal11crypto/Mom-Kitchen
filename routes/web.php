@@ -10,6 +10,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Vendor\VendorProfileController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 
 
 // Admin Controllers (Inside Admin Folder)
@@ -63,6 +64,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
     Route::patch('/payments/{payment}/status', [PaymentController::class, 'updateStatus'])->name('payments.updateStatus');
+
+    Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
+    Route::patch('/orders/{id}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.updateStatus');
 });
 
 Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->group(function () {
@@ -85,8 +90,11 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     // Earnings / Transactions (NEW)
     Route::get('/transactions', [PaymentController::class, 'vendorTransactions'])->name('transactions.index');
 
-        Route::get('/profile', [VendorProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [VendorProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [VendorProfileController::class, 'update'])->name('profile.update');
+
+     Route::patch('/orders/{id}/status', [OrderController::class, 'vendorUpdateStatus'])->name('orders.updateStatus');
+
 
 });
 

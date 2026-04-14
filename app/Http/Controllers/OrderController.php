@@ -152,6 +152,28 @@ public function vendorTransactions()
 
     return view('vendor.transactions.index', compact('transactions', 'totalEarnings'));
 }
+
+public function vendorUpdateStatus(Request $request, $id)
+{
+    $request->validate([
+        'order_status' => 'required|in:delivered,cancelled',
+    ]);
+
+    $order = \App\Models\Order::findOrFail($id);
+
+    // Verify vendor ownership of items in this order
+    $hasItems = $order->orderItems()->where('seller_id', auth()->id())->exists();
+
+    if (!$hasItems) {
+        abort(403, 'Unauthorized access to this order.');
+    }
+
+    $order->update(['order_status' => $request->order_status]);
+
+    return back()->with('status', 'Order status updated successfully!');
+}
+
+
     /**
      * Verify Khalti Payment
      */
