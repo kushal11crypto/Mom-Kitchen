@@ -36,7 +36,7 @@
 
             <div class="bg-white shadow-2xl shadow-slate-200/50 sm:rounded-3xl border border-slate-100 overflow-hidden">
                 <div class="p-8 sm:p-10">
-                    <form action="{{ route('items.update', $item->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                    <form action="{{ route('vendor.items.update', $item->id) }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                         @csrf
                         @method('PUT')
 

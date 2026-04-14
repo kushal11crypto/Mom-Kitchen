@@ -16,13 +16,34 @@
             <!-- 🔷 Right Side -->
             <div class="flex items-center space-x-6">
 
-                <!-- ✅ Vendor Dashboard -->
                 @if(auth()->user()->role === 'vendor')
-                    <a href="{{ route('vendor.dashboard') }}"
-                       class="text-gray-700 hover:text-orange-600 font-medium">
-                        Dashboard
-                    </a>
-                @endif
+
+    <!-- Dashboard -->
+    <a href="{{ route('vendor.dashboard') }}"
+       class="text-gray-700 hover:text-orange-600 font-medium">
+        Dashboard
+    </a>
+
+    
+    <!-- Orders -->
+    <a href="{{ route('vendor.orders.index') }}"
+       class="text-gray-700 hover:text-orange-600 font-medium">
+        Orders
+    </a>
+
+    <!-- Earnings / Transactions -->
+    <a href="{{ route('vendor.transactions.index') }}"
+       class="text-gray-700 hover:text-orange-600 font-medium">
+        Earnings
+    </a>
+
+    <!-- Profile -->
+    <a href="{{ route('profile.edit') }}"
+       class="text-gray-700 hover:text-orange-600 font-medium">
+        Profile
+    </a>
+
+@endif
 
                 <!-- ✅ Customer Links -->
                 @if(auth()->user()->role === 'customer')

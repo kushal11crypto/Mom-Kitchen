@@ -38,7 +38,7 @@
 
                     {{-- Items Preview --}}
                     <div class="border-t pt-3">
-                        @foreach($order->items as $item)
+                        @foreach($order->orderItems as $item)
                             @php
                                 $itemName = $item->item ? $item->item->item_name : 'Item Deleted';
                                 $quantity = $item->quantity ?? 1;

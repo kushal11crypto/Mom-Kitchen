@@ -10,6 +10,8 @@
 
     <!-- Navigation Bar -->
     <nav class="flex justify-between items-center p-6 bg-white shadow-sm sticky top-0 z-50">
+      <!-- Version with a subtle border if the logo background is messy -->
+
         <h1 class="text-2xl font-extrabold text-orange-600 tracking-tight">Mom's Kitchen</h1>
         
         <div class="space-x-6 flex items-center">
@@ -48,12 +50,25 @@
                     </a>
                 </div>
             </div>
-            <div class="hidden md:block relative">
-                <!-- Replace with an actual image of food or a home chef -->
-                <div class="w-full h-80 bg-orange-200 rounded-3xl overflow-hidden shadow-inner flex items-center justify-center">
-                    <span class="text-orange-400 font-bold">Chef Image / Illustration</span>
-                </div>
-            </div>
+      
+    <div class="hidden md:flex items-center justify-center relative">
+
+    <!-- Decorative background glow -->
+    <div class="absolute w-72 h-72 opacity-20 rounded-full blur-3xl"></div>
+
+    <!-- Logo Card -->
+    <div class="relative bg-white/80 backdrop-blur-lg rounded-[2rem]  border-orange-100 flex items-center justify-center">
+        
+        <img src="{{ asset('storage/uploads/logo.png') }}" 
+             alt="Mom's Kitchen Logo"
+             class="h-72 w-72 object-contain hover:scale-105 transition duration-300">
+
+    </div>
+
+</div>
+
+   
+
         </div>
 
         <!-- Vendor Promotion Section -->

@@ -7,45 +7,83 @@ use App\Models\User;
 use App\Models\Item;
 use App\Models\Order;
 use App\Models\Payment;
-use App\Models\Category;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // 1. High-level Statistics
+        /**
+         * ----------------------------
+         * 1. BASIC STATS
+         * ----------------------------
+         */
         $stats = [
             'total_users'    => User::where('role', '!=', 'admin')->count(),
             'total_vendors'  => User::where('role', 'vendor')->count(),
             'total_items'    => Item::count(),
             'total_orders'   => Order::count(),
-            'pending_orders' => Order::where('order_status', 'pending')->count(),
-            'total_revenue'  => Payment::where('payment_status', 'paid')->sum('payment_amount') ?? 0,
+            'pending_orders' => Order::where('order_status', Order::STATUS_PENDING)->count(),
+
+            
+
+    'pending_orders_amount' => Order::where('order_status', Order::STATUS_PENDING)
+    ->with('orderItems')
+    ->get()
+    ->sum(function ($order) {
+        return $order->orderItems->sum(function ($item) {
+            return $item->quantity * $item->unit_price;
+        });
+    }),
+            /**
+             * FIXED: safer revenue calculation
+             * handles multiple payment statuses + numeric casting
+             */
+            'total_revenue'  => Payment::whereIn('payment_status', [
+                    'paid', 'success', 'completed', 'verified'
+                ])
+                ->selectRaw('COALESCE(SUM(CAST(payment_amount AS DECIMAL(10,2))),0) as total')
+                ->value('total'),
         ];
 
-        // 2. Recent Orders with Relationships
-        $recentOrders = Order::with(['customer', 'payment'])
+        /**
+         * ----------------------------
+         * 2. RECENT ORDERS
+         * ----------------------------
+         */
+        $recentOrders = Order::with(['user', 'payment'])
             ->latest()
             ->take(5)
             ->get();
 
-        // 3. Top Items (Ensure 'orderItems' relationship exists in Item model)
-        // PostgreSQL requires careful ordering with withCount
+        /**
+         * ----------------------------
+         * 3. TOP ITEMS
+         * ----------------------------
+         */
         $topItems = Item::with('category')
-            ->withCount('orderItems') 
-            ->orderBy('order_items_count', 'desc')
+            ->withCount('orderItems')
+            ->orderByDesc('order_items_count')
             ->take(5)
             ->get();
 
-        // 4. Monthly Revenue (PostgreSQL specific syntax)
-        $monthlyRevenue = Payment::where('payment_status', 'paid')
-            ->selectRaw('EXTRACT(MONTH FROM payment_date) as month, SUM(payment_amount) as total')
+        /**
+         * ----------------------------
+         * 4. MONTHLY REVENUE
+         * ----------------------------
+         */
+        $monthlyRevenue = Payment::whereIn('payment_status', [
+                'paid', 'success', 'completed', 'verified'
+            ])
+            ->selectRaw('EXTRACT(MONTH FROM payment_date) as month, SUM(CAST(payment_amount AS DECIMAL(10,2))) as total')
             ->groupBy('month')
-            ->orderBy('month', 'asc')
+            ->orderBy('month')
             ->get();
 
-        // 5. Order Status Breakdown
+        /**
+         * ----------------------------
+         * 5. ORDER STATUS BREAKDOWN
+         * ----------------------------
+         */
         $orderStatusCounts = Order::selectRaw('order_status, COUNT(*) as count')
             ->groupBy('order_status')
             ->pluck('count', 'order_status');

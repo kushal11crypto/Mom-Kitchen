@@ -59,7 +59,7 @@
                 <div class="border-t pt-3">
                     <h3 class="font-semibold text-gray-700 mb-2">Items</h3>
                     <div class="space-y-3">
-                        @foreach($order->items as $item)
+                        @foreach($order->orderItems as $item)
                             @php
                                 $itemName = $item->item ? $item->item->name : 'Item Deleted';
                                 $unitPrice = $item->unit_price ?? 0;

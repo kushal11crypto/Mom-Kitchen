@@ -94,9 +94,9 @@ class OrderController extends Controller
     /**
      * Customer Order History
      */
-    public function myOrders()
+public function myOrders()
 {
-    $orders = Order::with('items.item') // eager load order items and their items
+    $orders = Order::with('orderItems.item')
         ->where('user_id', Auth::id())
         ->latest()
         ->get();
@@ -105,13 +105,53 @@ class OrderController extends Controller
 }
 public function showOrder($id)
 {
-    $order = Order::with('items.item', 'items.seller', 'payment')
-                  ->where('user_id', auth()->id())
-                  ->findOrFail($id);
+    $order = Order::with('orderItems.item', 'orderItems.seller', 'payment')
+        ->where('user_id', auth()->id())
+        ->findOrFail($id);
 
     return view('customer.order_details', compact('order'));
 }
+public function vendorOrders()
+{
+    $orders = \App\Models\Order::whereHas('orderItems', function ($q) {
+        $q->where('seller_id', auth()->id());
+    })
+    ->with([
+        'user',
+        'orderItems.item',
+        'orderItems.seller'
+    ])
+    ->latest()
+    ->get();
 
+    return view('vendor.orders.index', compact('orders'));
+}
+public function vendorOrderShow($id)
+{
+    $order = Order::whereHas('orderItems', function ($q) {
+            $q->where('seller_id', auth()->id());
+        })
+        ->with(['user', 'orderItems.item', 'orderItems.seller'])
+        ->findOrFail($id);
+
+    return view('vendor.orders.show', compact('order'));
+}
+public function vendorTransactions()
+{
+    $transactions = \App\Models\OrderItem::with('order')
+        ->where('seller_id', auth()->id())
+        ->whereHas('order', function ($q) {
+            $q->where('order_status', 'paid');
+        })
+        ->latest()
+        ->get();
+
+    $totalEarnings = $transactions->sum(function ($item) {
+        return $item->quantity * $item->unit_price;
+    });
+
+    return view('vendor.transactions.index', compact('transactions', 'totalEarnings'));
+}
     /**
      * Verify Khalti Payment
      */

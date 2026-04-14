@@ -9,31 +9,35 @@ use Illuminate\Http\Request;
 class PaymentController extends Controller
 {
     public function index(Request $request)
-    {
-        $query = Payment::with('order.customer');
+{
+    $query = Payment::with(['order.user', 'order.orderItems.item']);
 
-        if ($request->filled('status')) {
-            $query->where('payment_status', $request->status);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('payment_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('payment_date', '<=', $request->date_to);
-        }
-
-        $payments     = $query->latest('payment_date')->paginate(15);
-        $totalRevenue = Payment::where('payment_status', 'paid')->sum('payment_amount');
-        $totalPending = Payment::where('payment_status', 'pending')->sum('payment_amount');
-
-        return view('admin.payments.index', compact('payments', 'totalRevenue', 'totalPending'));
+    if ($request->filled('date_from')) {
+        $query->whereDate('payment_date', '>=', $request->date_from);
     }
+
+    if ($request->filled('date_to')) {
+        $query->whereDate('payment_date', '<=', $request->date_to);
+    }
+
+    $payments = $query->latest('payment_date')->paginate(15);
+
+    $totalRevenue = Payment::whereIn('payment_status', ['paid', 'success', 'completed'])
+        ->sum('payment_amount');
+
+    $totalPending = Payment::where('payment_status', 'pending')
+        ->sum('payment_amount');
+
+    return view('admin.payments.index', compact(
+        'payments',
+        'totalRevenue',
+        'totalPending'
+    ));
+}
 
     public function show(Payment $payment)
     {
-        $payment->load('order.customer', 'order.items.item');
+        $payment->load('order.user', 'order.orderItems.item');
         return view('admin.payments.show', compact('payment'));
     }
 

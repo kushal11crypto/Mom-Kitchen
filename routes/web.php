@@ -75,6 +75,13 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
     })->name('dashboard');
 
     Route::resource('items', ItemController::class);
+
+     Route::get('/orders', [OrderController::class, 'vendorOrders'])->name('orders.index');
+
+    Route::get('/orders/{id}', [OrderController::class, 'vendorOrderShow'])->name('orders.show');
+
+    // Earnings / Transactions (NEW)
+    Route::get('/transactions', [PaymentController::class, 'vendorTransactions'])->name('transactions.index');
 });
 
 Route::middleware(['auth', 'role:customer'])->group(function () {
