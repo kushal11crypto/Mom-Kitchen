@@ -38,11 +38,10 @@
     </a>
 
     <!-- Profile -->
-    <a href="{{ route('profile.edit') }}"
-       class="text-gray-700 hover:text-orange-600 font-medium">
+     <a href="{{ route('vendor.profile.edit') }}"
+       class="{{ request()->routeIs('vendor.profile.edit') ? 'text-orange-600 font-bold' : 'text-gray-700' }} hover:text-orange-600 font-medium">
         Profile
     </a>
-
 @endif
 
                 <!-- ✅ Customer Links -->

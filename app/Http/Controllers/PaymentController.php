@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use App\Models\Order;
 
 class PaymentController extends Controller
 {
     public function index(Request $request)
 {
-    $query = Payment::with(['order.user', 'order.orderItems.item']);
+    $query = Payment::with(['order.user',   'order.orderItems.seller',  'order.orderItems.item']);
 
     if ($request->filled('date_from')) {
         $query->whereDate('payment_date', '>=', $request->date_from);
@@ -34,6 +35,32 @@ class PaymentController extends Controller
         'totalPending'
     ));
 }
+
+
+
+// Add this inside the PaymentController class
+public function vendorTransactions()
+{
+    $vendorId = auth()->id();
+
+    // Get orders that have items belonging to this vendor
+    $orders = Order::whereHas('orderItems', function ($query) use ($vendorId) {
+        $query->where('seller_id', $vendorId);
+    })
+    ->with(['user', 'orderItems' => function ($query) use ($vendorId) {
+        $query->where('seller_id', $vendorId);
+    }])
+    ->latest()
+    ->get();
+
+    // Calculate sum of all earned amounts
+    $totalEarnings = $orders->reduce(function ($carry, $order) use ($vendorId) {
+        return $carry + $order->orderItems->sum(fn($item) => $item->quantity * $item->unit_price);
+    }, 0);
+
+    return view('vendor.transactions', compact('orders', 'totalEarnings'));
+}
+
 
     public function show(Payment $payment)
     {

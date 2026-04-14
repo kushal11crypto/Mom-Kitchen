@@ -9,6 +9,8 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Vendor\VendorProfileController;
+
 
 // Admin Controllers (Inside Admin Folder)
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -82,6 +84,10 @@ Route::middleware(['auth', 'role:vendor'])->prefix('vendor')->name('vendor.')->g
 
     // Earnings / Transactions (NEW)
     Route::get('/transactions', [PaymentController::class, 'vendorTransactions'])->name('transactions.index');
+
+        Route::get('/profile', [VendorProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [VendorProfileController::class, 'update'])->name('profile.update');
+
 });
 
 Route::middleware(['auth', 'role:customer'])->group(function () {
