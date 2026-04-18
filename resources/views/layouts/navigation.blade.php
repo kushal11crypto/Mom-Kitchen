@@ -19,10 +19,10 @@
                 @if(auth()->user()->role === 'vendor')
 
     <!-- Dashboard -->
-    <a href="{{ route('vendor.dashboard') }}"
-       class="text-gray-700 hover:text-orange-600 font-medium">
-        Dashboard
-    </a>
+    <a href="{{ route('dashboard') }}"
+   class="text-gray-700 hover:text-orange-600 font-medium">
+    Dashboard
+</a>
 
     
     <!-- Orders -->

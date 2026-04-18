@@ -18,7 +18,9 @@
             <a href="#how-it-works" class="hidden md:block text-gray-600 hover:text-orange-600 font-medium">How it Works</a>
             @if (Route::has('login'))
                 @auth
-                    <a href="{{ url('/customer/menu') }}" class="text-gray-700 hover:text-orange-600 font-semibold">Dashboard</a>
+                    <a href="{{ route('dashboard') }}" class="text-gray-700 hover:text-orange-600 font-semibold">
+    Dashboard
+</a>
                 @else
                     <a href="{{ route('login') }}" class="text-gray-700 hover:text-orange-600 font-semibold">Log in</a>
                     @if (Route::has('register'))
