@@ -232,7 +232,7 @@ public function vendorUpdateStatus(Request $request, $id)
                     ]);
 
                     // ✅ Vendor Transactions
-                    foreach ($order->items as $item) {
+                    foreach ($order->orderItems as $item) {
                         Transaction::create([
                             'sender_id' => $order->user_id,
                             'receiver_id' => $item->seller_id,
