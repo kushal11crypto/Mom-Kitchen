@@ -20,6 +20,10 @@
                 <a href="{{ route('admin.users.index') }}" class="flex items-center py-3 px-6 hover:bg-slate-800 {{ request()->routeIs('admin.users.*') ? 'bg-slate-800 border-l-4 border-blue-500' : '' }}">
                     <i class="fas fa-users mr-3"></i> Users
                 </a>
+                <a href="{{ route('admin.items.index') }}" 
+   class="flex items-center py-3 px-6 hover:bg-slate-800 {{ request()->routeIs('admin.items.*') ? 'bg-slate-800 border-l-4 border-blue-500' : '' }}">
+    <i class="fas fa-utensils mr-3"></i> Items
+</a>
                 <a href="{{ route('admin.categories.index') }}" class="flex items-center py-3 px-6 hover:bg-slate-800 {{ request()->routeIs('admin.categories.*') ? 'bg-slate-800 border-l-4 border-blue-500' : '' }}">
                     <i class="fas fa-list mr-3"></i> Categories
                 </a>

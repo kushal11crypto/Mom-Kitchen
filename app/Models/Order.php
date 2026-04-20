@@ -12,6 +12,10 @@ class Order extends Model
         'order_status',
         'total_amount',
         'pidx', // ✅ IMPORTANT (added)
+        'shipping_name',
+    'shipping_phone',
+    'shipping_address',
+    'shipping_city',
     ];
       // Cast order_date to Carbon instance
     protected $casts = [

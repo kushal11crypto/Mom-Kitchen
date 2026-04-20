@@ -10,20 +10,18 @@ use Illuminate\Support\Facades\Storage;
 
 class ItemController extends Controller
 {
-
     public function index()
     {
-        // Load items along with their category to avoid N+1 query
         $items = Item::with('categories')->get();
-
         return view('items.index', compact('items'));
     }
+
     /**
      * Vendor Dashboard
      */
     public function dashboard()
     {
-        $items = Item::with('category') // ✅ eager loading
+        $items = Item::with('category')
             ->where('user_id', Auth::id())
             ->latest()
             ->get();
@@ -32,63 +30,71 @@ class ItemController extends Controller
     }
 
     /**
-     * Show Create FormÏ
+     * Show Create Form
      */
     public function create()
     {
         $categories = Category::all();
         return view('vendor.create-item', compact('categories'));
     }
-     /**
-     * store new
-     */
 
+    /**
+     * Store new item
+     */
     public function store(Request $request)
     {
         $request->validate([
-    'item_name' => 'required|string|max:255',
-    'price' => 'required|numeric',
-    'category_id' => 'required|exists:categories,id',
-    'image' => 'nullable|image|max:5120',
-    'availability_status' => 'required|in:available,unavailable',
-], [
-    'image.max' => 'The image must not be larger than 5MB.',
-    'image.image' => 'The uploaded file must be an image (JPG, PNG).',
-]);
+            'item_name' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'category_id' => 'required|exists:categories,id',
+            'image' => 'nullable|image|max:5120',
+            'availability_status' => 'required|in:available,unavailable',
+        ]);
 
         $item = new Item();
         $item->item_name = $request->item_name;
         $item->price = $request->price;
         $item->category_id = $request->category_id;
         $item->availability_status = $request->availability_status;
+        $item->user_id = Auth::id();
 
-        $item->user_id = Auth::id(); 
         if ($request->hasFile('image')) {
-    $file = $request->file('image');
-
-    if (!$file->isValid()) {
-        dd($file->getError(), $file->getErrorMessage());
-    }
-
-    $imagePath = $file->store('items', 'public');
-    $item->image_url = $imagePath;
-}
+            $file = $request->file('image');
+            $imagePath = $file->store('items', 'public');
+            $item->image_url = $imagePath;
+        }
 
         $item->save();
 
-        return redirect()->route('vendor.dashboard')->with('success', 'Item created successfully!');
+        return redirect()->route('vendor.dashboard')
+            ->with('success', 'Item created successfully!');
     }
 
-    public function menu()
-{
-    $items = Item::where('availability_status', 'available')
-        ->latest()
-        ->get();
-
-    return view('customer.menu', compact('items'));
-}
     /**
-     * Show Edit Form
+     * MENU PAGE WITH SEARCH (UPDATED ONLY HERE)
+     */
+    public function menu(Request $request)
+    {
+        $search = $request->search;
+
+        $items = Item::with(['category', 'user'])
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('item_name', 'like', "%{$search}%")
+                      ->orWhere('price', 'like', "%{$search}%")
+                      ->orWhereHas('category', function ($c) use ($search) {
+                          $c->where('categoryName', 'like', "%{$search}%");
+                      });
+                });
+            })
+            ->latest()
+            ->get();
+
+        return view('customer.menu', compact('items'));
+    }
+
+    /**
+     * Edit Item
      */
     public function edit($id)
     {
@@ -120,15 +126,12 @@ class ItemController extends Controller
             'availability_status'
         ]);
 
-        // ✅ Handle Image Update
         if ($request->hasFile('image')) {
 
-            // 🔴 Delete old image if exists
             if ($item->image_url && Storage::disk('public')->exists($item->image_url)) {
                 Storage::disk('public')->delete($item->image_url);
             }
 
-            // ✅ Save new image
             $data['image_url'] = $request->file('image')->store('items', 'public');
         }
 
@@ -145,7 +148,6 @@ class ItemController extends Controller
     {
         $item = Item::where('user_id', Auth::id())->findOrFail($id);
 
-        // 🔴 Delete image from storage
         if ($item->image_url && Storage::disk('public')->exists($item->image_url)) {
             Storage::disk('public')->delete($item->image_url);
         }

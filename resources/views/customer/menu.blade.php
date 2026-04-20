@@ -4,7 +4,7 @@
         <div class="max-w-7xl mx-auto px-6">
             
             <!-- Header -->
-            <div class="text-center mb-12">
+            <div class="text-center mb-10">
                 <span class="text-orange-600 font-bold tracking-widest uppercase text-sm">
                     Fresh & Tasty
                 </span>
@@ -13,6 +13,36 @@
                 </h3>
                 <div class="w-24 h-1.5 bg-orange-500 mx-auto mt-4 rounded-full"></div>
             </div>
+
+            <!-- 🔍 Search Bar -->
+            <div class="mb-10 flex justify-center">
+                <form method="GET" action="{{ route('customer.menu') }}" class="w-full max-w-xl flex">
+                    
+                    <input 
+                        type="text" 
+                        name="search" 
+                        placeholder="Search delicious food..."
+                        value="{{ request('search') }}"
+                        class="w-full px-5 py-3 rounded-l-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+
+                    <button 
+                        type="submit"
+                        class="bg-orange-600 text-white px-6 rounded-r-xl hover:bg-black transition"
+                    >
+                        Search
+                    </button>
+
+                </form>
+            </div>
+
+            <!-- Search Result Message -->
+            @if(request('search'))
+                <p class="text-center text-gray-500 mb-8">
+                    Showing results for 
+                    "<span class="font-semibold text-orange-600">{{ request('search') }}</span>"
+                </p>
+            @endif
 
             <!-- Success Toast -->
             <div id="success-message"
@@ -37,7 +67,7 @@
                     <!-- Image -->
                     <div class="relative overflow-hidden p-4">
                         <img src="{{ asset('storage/' . $item->image_url) }}"
-     class="rounded-[2rem] w-full h-64 object-cover">
+                             class="rounded-[2rem] w-full h-64 object-cover">
 
                         <!-- Badge -->
                         <div class="absolute top-8 left-8 bg-white/90 backdrop-blur px-4 py-1 rounded-full shadow-sm">
@@ -93,8 +123,8 @@
                 @empty
                 <!-- No Items -->
                 <div class="col-span-3 text-center py-20">
-                    <h2 class="text-2xl font-bold text-gray-600">No items available</h2>
-                    <p class="text-gray-400 mt-2">Please check back later.</p>
+                    <h2 class="text-2xl font-bold text-gray-600">No items found</h2>
+                    <p class="text-gray-400 mt-2">Try searching something else.</p>
                 </div>
                 @endforelse
 
@@ -105,62 +135,59 @@
     <!-- JS -->
     <script>
     document.querySelectorAll('.add-to-cart-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-        let id = this.getAttribute('data-id');
-        let formData = new FormData(this);
-        let btn = this.querySelector('button');
-        let originalIcon = btn.innerHTML;
+            let id = this.getAttribute('data-id');
+            let formData = new FormData(this);
+            let btn = this.querySelector('button');
+            let originalIcon = btn.innerHTML;
 
-        // Append seller_id explicitly
-        formData.append('seller_id', this.querySelector('input[name="seller_id"]').value);
+            // Loading spinner
+            btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>`;
 
-        // Loading spinner
-        btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>`;
+            fetch(`/add-to-cart/${id}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.innerHTML = originalIcon;
 
-        fetch(`/add-to-cart/${id}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            btn.innerHTML = originalIcon;
+                if (data.success) {
+                    // Update cart badge
+                    const badge = document.getElementById('cart-count-badge');
+                    if (badge) {
+                        badge.innerText = data.cart_count;
+                        badge.classList.remove('hidden');
+                    }
 
-            if (data.success) {
-                // Update cart badge
-                const badge = document.getElementById('cart-count-badge');
-                if (badge) {
-                    badge.innerText = data.cart_count;
-                    badge.classList.remove('hidden');
+                    // Show toast
+                    const toast = document.getElementById('success-message');
+                    const text = document.getElementById('toast-text');
+
+                    text.innerText = data.message;
+                    toast.classList.remove('hidden', 'translate-x-full');
+
+                    setTimeout(() => {
+                        toast.classList.add('translate-x-full');
+                        setTimeout(() => toast.classList.add('hidden'), 300);
+                    }, 3000);
                 }
-
-                // Show toast
-                const toast = document.getElementById('success-message');
-                const text = document.getElementById('toast-text');
-
-                text.innerText = data.message;
-                toast.classList.remove('hidden', 'translate-x-full');
-
-                setTimeout(() => {
-                    toast.classList.add('translate-x-full');
-                    setTimeout(() => toast.classList.add('hidden'), 300);
-                }, 3000);
-            }
-        })
-        .catch(error => {
-            btn.innerHTML = originalIcon;
-            console.error(error);
+            })
+            .catch(error => {
+                btn.innerHTML = originalIcon;
+                console.error(error);
+            });
         });
     });
-});
     </script>
 
 </x-app-layout>

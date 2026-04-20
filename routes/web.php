@@ -11,7 +11,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
-
+use App\Http\Controllers\Admin\ItemController as AdminItemController;
 
 // Admin Controllers (Inside Admin Folder)
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -59,7 +59,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('users', AdminUserController::class);
     Route::resource('categories', AdminCategoryController::class);
-    
+    Route::resource('items', AdminItemController::class);
     // Payment Management
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
