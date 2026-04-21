@@ -30,6 +30,18 @@
                         required autocomplete="username">
                     <x-input-error :messages="$errors->get('email')" class="mt-1" />
                 </div>
+                <!-- Phone Number -->
+<div class="mb-4">
+    <label class="block text-gray-700 font-medium mb-1">Phone Number</label>
+    <input type="text" name="phone_number" value="{{ old('phone_number') }}"
+    placeholder="98XXXXXXXX"
+    pattern="(98|97)[0-9]{8}"
+    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:outline-none"
+    required>
+    <x-input-error :messages="$errors->get('phone_number')" class="mt-1" />
+</div>
+
+
 
                 <!-- Password -->
                 <div class="mb-4">

@@ -82,6 +82,11 @@
                             <h3 class="text-2xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
                                 {{ $item->item_name }}
                             </h3>
+                            <p class="text-sm text-gray-500 mt-1">
+        by <span class="font-semibold text-orange-600">
+            {{ $item->user->name ?? 'Unknown Vendor' }}
+        </span>
+    </p>
 
                             <p class="text-gray-400 text-sm mt-1 leading-relaxed">
                                 Freshly prepared with premium ingredients.
